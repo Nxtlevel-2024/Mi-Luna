@@ -2,30 +2,21 @@
 @import 'tailwindcss';
 
 /*
- * Mi-Luna design tokens.
- * Palette: deep espresso, warm sand, soft ecru and clean white space.
- * Shape: sharp media, full pill on interactive elements.
- * The page is locked to this light, warm theme on purpose.
+ * Mi-Luna design tokens. Strictly three colours:
+ * warm ecru (#FDFBF7), deep espresso-black (#1C1917) and white space.
+ * Muted text is espresso at reduced opacity, never a new hue.
  */
 :root {
   color-scheme: light;
-  --espresso: #1f1714;
-  --espresso-soft: #5b4a42;
-  --sand: #d9c4ae;
-  --sand-deep: #b89a7e;
-  --ecru: #f3ece2;
-  --white: #fdfbf8;
+  --ecru: #fdfbf7;
+  --espresso: #1c1917;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
   --font-sans: 'Inter Variable', 'Helvetica Neue', Helvetica, ui-sans-serif, system-ui, sans-serif;
-  --color-espresso: var(--espresso);
-  --color-espresso-soft: var(--espresso-soft);
-  --color-sand: var(--sand);
-  --color-sand-deep: var(--sand-deep);
   --color-ecru: var(--ecru);
-  --color-white: var(--white);
+  --color-espresso: var(--espresso);
   --ease-out-strong: var(--ease-out);
 }
 
@@ -35,25 +26,21 @@
   }
 
   body {
-    @apply bg-white text-espresso font-sans antialiased;
+    @apply bg-ecru text-espresso font-sans antialiased;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-4 outline-espresso;
+    @apply outline-1 outline-offset-4 outline-current;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-
   .reveal {
-    animation: reveal 0.9s var(--ease-out) both;
+    animation: reveal 1.1s var(--ease-out) both;
   }
 
   .reveal-delay {
-    animation-delay: 120ms;
+    animation-delay: 160ms;
   }
 }
 

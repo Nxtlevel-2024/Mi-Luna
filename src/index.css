@@ -1,0 +1,72 @@
+@import '@fontsource-variable/geist';
+@import 'tailwindcss';
+
+/*
+ * Mi-Luna design tokens.
+ * Palette: cool monochrome (moonlight) with one muted midnight accent.
+ * Shape: all-soft, 4px on media, full pill on interactive elements.
+ */
+:root {
+  --surface: #f6f6f4;
+  --surface-raised: #ececea;
+  --ink: #18181b;
+  --ink-muted: #52525b;
+  --line: #d9d9d6;
+  --accent: #2f3e5c;
+  --accent-ink: #f6f6f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #111113;
+    --surface-raised: #1c1c1f;
+    --ink: #ededeb;
+    --ink-muted: #a1a1aa;
+    --line: #2e2e33;
+    --accent: #aab8d6;
+    --accent-ink: #111113;
+  }
+}
+
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface text-ink font-sans antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-accent;
+  }
+}
+
+/* Subtle load-in; disabled for users who prefer reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .reveal {
+    animation: reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

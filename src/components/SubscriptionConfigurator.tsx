@@ -16,7 +16,7 @@ const sizes: Array<{ value: Size; fit: string }> = [
 // TODO: pull price and interval from the Shopify selling plan once it exists.
 const PLAN = { price: '€19,95', interval: 'per maand' }
 
-const perks = ['Elke maand een nieuwe string', 'Gratis verzending', 'Pauzeer of stop wanneer je wilt']
+const perks = ['Elke maand een nieuwe premium string', 'Gratis en discreet verzonden', 'Pauzeer of stop wanneer je wilt']
 
 /*
  * Soft spring for the selected-size pill: subtle bounce, interruptible when
@@ -30,7 +30,7 @@ export function SubscriptionConfigurator() {
   const selected = sizes.find((s) => s.value === size)
 
   return (
-    <section id="abonnement" className="scroll-mt-6 bg-ecru py-20 md:py-28">
+    <section id="abonnement" tabIndex={-1} aria-labelledby="abonnement-title" className="bg-ecru py-20 outline-none md:py-28">
       <Container className="grid grid-cols-1 gap-10 md:grid-cols-12 md:gap-12">
         <Photo
           src={media.configurator}
@@ -42,9 +42,12 @@ export function SubscriptionConfigurator() {
         {/* Floating panel: sticks beside the photo on desktop. */}
         <div className="md:col-span-5">
           <div className="md:sticky md:top-8">
-            <h2 className="text-4xl leading-none font-bold tracking-tight uppercase md:text-5xl">
-              Het string abonnement
+            <h2 id="abonnement-title" className="text-4xl leading-none font-extrabold tracking-[-0.03em] md:text-5xl">
+              Jouw string abonnement
             </h2>
+            <p className="mt-4 max-w-[40ch] leading-relaxed text-espresso-soft">
+              Kies je maat. Wij zorgen dat er elke maand iets nieuws in je brievenbus valt.
+            </p>
             <p className="mt-5 text-2xl font-medium">
               {PLAN.price}
               <span className="ml-2 text-base font-normal text-espresso-soft">{PLAN.interval}</span>

@@ -7,10 +7,10 @@ const links = [
   { href: '#collectie', label: 'Shop' },
 ]
 
-/* Sits on top of the full-bleed hero photo, so it starts in ecru on transparent. */
+/* Sits on top of the light, sand-washed hero photo. */
 export function Header() {
   return (
-    <header className="absolute inset-x-0 top-0 z-30 text-ecru">
+    <header className="absolute inset-x-0 top-0 z-30 text-espresso">
       <Container className="flex h-16 items-center justify-between md:h-[76px]">
         <a href="#top" className="text-xl font-bold tracking-tight uppercase">
           Mi-Luna

@@ -15,8 +15,8 @@ export function Lookbook() {
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-espresso/55 via-transparent to-transparent" />
         <Container className="absolute inset-x-0 bottom-0 pb-12 md:pb-16">
-          <p className="max-w-lg text-3xl leading-tight font-bold tracking-tight text-ecru uppercase md:text-5xl">
-            Gemaakt om gevoeld te worden.
+          <p className="max-w-xl text-3xl leading-[1.05] font-extrabold tracking-[-0.03em] text-ecru md:text-5xl">
+            Zelfverzekerd begint bij wat je eronder draagt.
           </p>
         </Container>
       </div>

@@ -1,4 +1,4 @@
-@import '@fontsource-variable/geist';
+@import '@fontsource-variable/inter';
 @import 'tailwindcss';
 
 /*
@@ -19,7 +19,7 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Helvetica Neue', Helvetica, ui-sans-serif, system-ui, sans-serif;
   --color-espresso: var(--espresso);
   --color-espresso-soft: var(--espresso-soft);
   --color-sand: var(--sand);

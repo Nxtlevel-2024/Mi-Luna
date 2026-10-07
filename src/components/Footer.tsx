@@ -26,6 +26,7 @@ export function Footer() {
       <Container className="grid grid-cols-2 gap-12 md:grid-cols-12">
         <div className="col-span-2 md:col-span-6">
           <p className="text-xl font-bold tracking-tight uppercase">Mi-Luna</p>
+          <p className="mt-3 text-sm text-ecru/70">One subscription, endless confidence.</p>
           <a
             href="#"
             aria-label="Mi-Luna op Instagram"

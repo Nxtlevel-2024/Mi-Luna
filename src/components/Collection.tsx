@@ -11,9 +11,9 @@ export function Collection() {
   return (
     <section id="collectie" className="scroll-mt-6 bg-ecru py-24 md:py-32">
       <Container>
-        <h2 className="text-4xl leading-none font-bold tracking-tight uppercase md:text-5xl">Shop de losse stukken</h2>
+        <h2 className="text-4xl leading-none font-extrabold tracking-[-0.03em] md:text-5xl">Shop de losse stukken</h2>
         <p className="mt-4 max-w-[52ch] leading-relaxed text-espresso-soft">
-          Liever zelf kiezen? Al onze strings zijn ook los verkrijgbaar.
+          Liever zelf kiezen? Elke string uit het abonnement is ook los te koop.
         </p>
 
         <div className="mt-14 md:mt-20">

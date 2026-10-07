@@ -3,40 +3,30 @@
 
 /*
  * Mi-Luna design tokens.
- * Palette: cool monochrome (moonlight) with one muted midnight accent.
- * Shape: all-soft, 4px on media, full pill on interactive elements.
+ * Palette: deep espresso, warm sand, soft ecru and clean white space.
+ * Shape: sharp media, full pill on interactive elements.
+ * The page is locked to this light, warm theme on purpose.
  */
 :root {
-  --surface: #f6f6f4;
-  --surface-raised: #ececea;
-  --ink: #18181b;
-  --ink-muted: #52525b;
-  --line: #d9d9d6;
-  --accent: #2f3e5c;
-  --accent-ink: #f6f6f4;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface: #111113;
-    --surface-raised: #1c1c1f;
-    --ink: #ededeb;
-    --ink-muted: #a1a1aa;
-    --line: #2e2e33;
-    --accent: #aab8d6;
-    --accent-ink: #111113;
-  }
+  color-scheme: light;
+  --espresso: #1f1714;
+  --espresso-soft: #5b4a42;
+  --sand: #d9c4ae;
+  --sand-deep: #b89a7e;
+  --ecru: #f3ece2;
+  --white: #fdfbf8;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
+  --color-espresso: var(--espresso);
+  --color-espresso-soft: var(--espresso-soft);
+  --color-sand: var(--sand);
+  --color-sand-deep: var(--sand-deep);
+  --color-ecru: var(--ecru);
+  --color-white: var(--white);
+  --ease-out-strong: var(--ease-out);
 }
 
 @layer base {
@@ -45,28 +35,31 @@
   }
 
   body {
-    @apply bg-surface text-ink font-sans antialiased;
+    @apply bg-white text-espresso font-sans antialiased;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-4 outline-accent;
+    @apply outline-2 outline-offset-4 outline-espresso;
   }
 }
 
-/* Subtle load-in; disabled for users who prefer reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
   }
 
   .reveal {
-    animation: reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: reveal 0.9s var(--ease-out) both;
+  }
+
+  .reveal-delay {
+    animation-delay: 120ms;
   }
 }
 
 @keyframes reveal {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
 }

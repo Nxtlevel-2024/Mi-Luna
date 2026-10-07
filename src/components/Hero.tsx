@@ -1,42 +1,47 @@
 import { ArrowRight } from '@phosphor-icons/react'
+import { media } from '../content/media'
 import { Container } from './Container'
-
-// TODO: replace placeholder photography with Mi-Luna brand imagery (1200x1500).
-const HERO_IMAGE = 'https://picsum.photos/seed/mi-luna-hero-moonlight/1200/1500'
+import { Photo } from './Photo'
 
 export function Hero() {
   return (
-    <section id="top" className="pt-12 pb-24 md:pt-20 md:pb-32">
-      <Container className="grid grid-cols-1 items-end gap-12 md:grid-cols-12 md:gap-10">
-        <div className="reveal md:col-span-5 md:pb-16">
-          <p className="mb-6 text-xs uppercase tracking-[0.2em] text-ink-muted">Nieuwe collectie</p>
-          <h1 className="text-4xl leading-[1.05] font-medium tracking-tight md:text-5xl lg:text-6xl">
-            Rust, met zorg gemaakt.
+    <section id="top" className="relative isolate flex min-h-[100dvh] items-end overflow-hidden bg-espresso">
+      <Photo
+        src={media.hero}
+        alt="Model in Mi-Luna kant"
+        fetchPriority="high"
+        className="absolute inset-0 -z-10 size-full object-[60%_center]"
+      />
+      {/* Warm scrim from the left keeps the copy readable over the photo. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-espresso/75 via-espresso/35 to-transparent"
+      />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-espresso/60 to-transparent" />
+
+      <Container className="pb-16 text-ecru md:pb-24">
+        <div className="max-w-2xl">
+          <h1 className="reveal text-5xl leading-[0.95] font-bold tracking-tight uppercase sm:text-6xl lg:text-7xl">
+            Comfort Made Sexy.
+            <span className="mt-3 block text-2xl leading-tight font-medium tracking-normal normal-case text-ecru/90 sm:text-3xl lg:text-4xl">
+              Elke maand in jouw brievenbus.
+            </span>
           </h1>
-          <p className="mt-6 max-w-[38ch] text-base leading-relaxed text-ink-muted md:text-lg">
-            Tijdloze stukken voor elke dag. Ontworpen om lang mee te gaan, rustig van vorm.
+          <p className="reveal reveal-delay mt-6 max-w-[44ch] text-base leading-relaxed text-ecru/85 md:text-lg">
+            Ontdek het Mi-Luna string abonnement. Premium kant, perfecte pasvorm, elke maand een nieuw
+            moment van luxe.
           </p>
           <a
-            href="#collectie"
-            className="group mt-10 inline-flex items-center gap-3 rounded-full bg-accent px-7 py-3.5 text-sm font-medium text-accent-ink transition-transform duration-200 active:scale-[0.98]"
+            href="#abonnement"
+            className="reveal reveal-delay group mt-10 inline-flex h-14 items-center gap-3 rounded-full bg-ecru px-8 text-sm font-semibold tracking-wide text-espresso uppercase transition-transform duration-150 ease-out active:scale-[0.97]"
           >
-            Bekijk collectie
+            Kies je maat
             <ArrowRight
               size={16}
-              className="transition-transform duration-200 group-hover:translate-x-0.5"
+              weight="bold"
+              className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
             />
           </a>
-        </div>
-
-        <div className="md:col-span-6 md:col-start-7">
-          <img
-            src={HERO_IMAGE}
-            alt="Mi-Luna sfeerbeeld"
-            width={1200}
-            height={1500}
-            fetchPriority="high"
-            className="aspect-[4/5] w-full rounded-[4px] bg-surface-raised object-cover"
-          />
         </div>
       </Container>
     </section>

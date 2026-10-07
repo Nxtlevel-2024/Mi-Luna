@@ -9,11 +9,11 @@ export function Collection() {
   const products = useProducts(PRODUCT_COUNT)
 
   return (
-    <section id="collectie" className="scroll-mt-20 py-24 md:py-32">
+    <section id="collectie" className="scroll-mt-6 bg-ecru py-24 md:py-32">
       <Container>
-        <h2 className="text-3xl font-medium tracking-tight md:text-4xl">De collectie</h2>
-        <p className="mt-4 max-w-[52ch] leading-relaxed text-ink-muted">
-          Een kleine selectie, met aandacht gekozen.
+        <h2 className="text-4xl leading-none font-bold tracking-tight uppercase md:text-5xl">Shop de losse stukken</h2>
+        <p className="mt-4 max-w-[52ch] leading-relaxed text-espresso-soft">
+          Liever zelf kiezen? Al onze strings zijn ook los verkrijgbaar.
         </p>
 
         <div className="mt-14 md:mt-20">
@@ -21,12 +21,12 @@ export function Collection() {
 
           {products.status === 'error' && (
             <div role="alert" className="max-w-md">
-              <p className="text-ink">De collectie kon niet worden geladen.</p>
-              <p className="mt-1 text-sm text-ink-muted">{products.message}</p>
+              <p className="text-espresso">De collectie kon niet worden geladen.</p>
+              <p className="mt-1 text-sm text-espresso-soft">{products.message}</p>
               <button
                 type="button"
                 onClick={products.retry}
-                className="mt-6 inline-flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm transition-colors duration-200 hover:bg-surface-raised active:scale-[0.98]"
+                className="mt-6 inline-flex items-center gap-2 rounded-full border border-sand px-5 py-2.5 text-sm transition-colors duration-200 hover:bg-white active:scale-[0.97]"
               >
                 <ArrowClockwise size={16} />
                 Opnieuw proberen
@@ -35,7 +35,7 @@ export function Collection() {
           )}
 
           {products.status === 'success' && products.products.length === 0 && (
-            <p className="text-ink-muted">
+            <p className="text-espresso-soft">
               Er staan nog geen producten online. Voeg producten toe in Shopify en publiceer ze naar
               het Headless-kanaal.
             </p>
@@ -82,7 +82,7 @@ function ProductCard({
 
   return (
     <a href={href} className={`group block ${className}`}>
-      <div className={`${aspect} overflow-hidden rounded-[4px] bg-surface-raised`}>
+      <div className={`${aspect} overflow-hidden bg-sand`}>
         {product.image && (
           <img
             src={`${product.image.url}&width=900`}
@@ -94,7 +94,7 @@ function ProductCard({
       </div>
       <div className="mt-5 flex items-baseline justify-between gap-6">
         <h3 className="text-base">{product.title}</h3>
-        <p className="shrink-0 text-sm text-ink-muted tabular-nums">{formatPrice(product.price)}</p>
+        <p className="shrink-0 text-sm text-espresso-soft tabular-nums">{formatPrice(product.price)}</p>
       </div>
     </a>
   )
@@ -116,8 +116,8 @@ function ProductGridSkeleton() {
 function SkeletonCard({ aspect, className = '' }: { aspect: string; className?: string }) {
   return (
     <div className={`animate-pulse motion-reduce:animate-none ${className}`}>
-      <div className={`${aspect} rounded-[4px] bg-surface-raised`} />
-      <div className="mt-5 h-4 w-2/5 rounded-full bg-surface-raised" />
+      <div className={`${aspect} bg-sand/60`} />
+      <div className="mt-5 h-4 w-2/5 rounded-full bg-sand/60" />
     </div>
   )
 }

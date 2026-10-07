@@ -2,14 +2,13 @@ import { Collection } from './components/Collection'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
 import { Hero } from './components/Hero'
-import { Newsletter } from './components/Newsletter'
-import { Story } from './components/Story'
-import { Values } from './components/Values'
+import { HowItWorks } from './components/HowItWorks'
+import { Lookbook } from './components/Lookbook'
+import { SubscriptionConfigurator } from './components/SubscriptionConfigurator'
 
 /*
- * Mi-Luna one-page.
- * Taste-skill dials: DESIGN_VARIANCE 4 (offset grid, varied aspect ratios),
- * VISUAL_DENSITY 5 (py-24 / md:py-32 section rhythm), MOTION_INTENSITY 3 (CSS only).
+ * Mi-Luna one-page, centred on the string subscription.
+ * Full-bleed hero, then the size configurator straight below it.
  */
 export default function App() {
   return (
@@ -17,10 +16,10 @@ export default function App() {
       <Header />
       <main>
         <Hero />
+        <SubscriptionConfigurator />
+        <HowItWorks />
+        <Lookbook />
         <Collection />
-        <Story />
-        <Values />
-        <Newsletter />
       </main>
       <Footer />
     </>

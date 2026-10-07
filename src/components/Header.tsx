@@ -2,24 +2,25 @@ import { HandbagSimple } from '@phosphor-icons/react'
 import { Container } from './Container'
 
 const links = [
-  { href: '#collectie', label: 'Collectie' },
-  { href: '#verhaal', label: 'Verhaal' },
-  { href: '#nieuwsbrief', label: 'Nieuwsbrief' },
+  { href: '#abonnement', label: 'Abonnement' },
+  { href: '#zo-werkt-het', label: 'Zo werkt het' },
+  { href: '#collectie', label: 'Shop' },
 ]
 
+/* Sits on top of the full-bleed hero photo, so it starts in ecru on transparent. */
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line/60 bg-surface/85 backdrop-blur-md">
-      <Container className="flex h-16 items-center justify-between md:h-[72px]">
-        <a href="#top" className="text-lg font-medium tracking-tight">
+    <header className="absolute inset-x-0 top-0 z-30 text-ecru">
+      <Container className="flex h-16 items-center justify-between md:h-[76px]">
+        <a href="#top" className="text-xl font-bold tracking-tight uppercase">
           Mi-Luna
         </a>
 
         <nav aria-label="Hoofdnavigatie" className="hidden md:block">
-          <ul className="flex items-center gap-10 text-sm text-ink-muted">
+          <ul className="flex items-center gap-10 text-[13px] font-medium tracking-wide uppercase">
             {links.map((link) => (
               <li key={link.href}>
-                <a href={link.href} className="transition-colors duration-200 hover:text-ink">
+                <a href={link.href} className="opacity-85 transition-opacity duration-200 hover:opacity-100">
                   {link.label}
                 </a>
               </li>
@@ -28,11 +29,11 @@ export function Header() {
         </nav>
 
         <a
-          href="#collectie"
+          href="#abonnement"
           aria-label="Winkelmand"
-          className="-mr-2 inline-flex size-10 items-center justify-center rounded-full transition-colors duration-200 hover:bg-surface-raised"
+          className="-mr-2 inline-flex size-10 items-center justify-center rounded-full transition-transform duration-150 ease-out active:scale-[0.97]"
         >
-          <HandbagSimple size={20} weight="light" />
+          <HandbagSimple size={22} weight="light" />
         </a>
       </Container>
     </header>

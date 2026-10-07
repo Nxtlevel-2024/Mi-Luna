@@ -1,7 +1,15 @@
-import { useRef, useState, type MouseEvent } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform, type Transition } from 'motion/react'
-import { ArrowDown, Star } from '@phosphor-icons/react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type Transition,
+} from 'framer-motion'
+import { ArrowDown, Check, Star } from '@phosphor-icons/react'
 import { Container } from './components/Container'
+import { Magnetic, Tilt } from './components/Interactions'
 import { Photo } from './components/Photo'
 import { media } from './content/media'
 import { reviews, sampleReviews } from './content/reviews'
@@ -9,7 +17,8 @@ import { smoothScrollTo } from './lib/smoothScroll'
 
 /*
  * Mi-Luna: one product, one page.
- * Hero -> how it works -> USPs -> reviews -> closing configurator -> footer.
+ * Hero -> how it works -> USPs -> reviews -> closing configurator -> footer,
+ * plus a sticky nudge that appears between the hero and the configurator.
  */
 export default function App() {
   return (
@@ -22,20 +31,21 @@ export default function App() {
         <Configurator />
       </main>
       <Footer />
+      <StickyNudge />
     </>
   )
 }
 
-function Hero() {
-  function goToConfigurator(event: MouseEvent<HTMLAnchorElement>) {
-    const target = document.getElementById('abonnement')
-    if (!target) return
-    event.preventDefault()
-    smoothScrollTo(target)
-  }
+function goToConfigurator(event: MouseEvent<HTMLAnchorElement>) {
+  const target = document.getElementById('abonnement')
+  if (!target) return
+  event.preventDefault()
+  smoothScrollTo(target)
+}
 
+function Hero() {
   return (
-    <section className="relative isolate flex min-h-[100dvh] flex-col bg-espresso text-ecru">
+    <section id="top" className="relative isolate flex min-h-[100dvh] flex-col bg-espresso text-ecru">
       <Photo
         src={media.hero}
         alt="Model in Mi-Luna lingerie"
@@ -44,7 +54,10 @@ function Hero() {
       />
       {/* Espresso scrim, heavier at the bottom where the copy sits. */}
       <div aria-hidden className="absolute inset-0 -z-10 bg-espresso/25" />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-espresso/80 to-transparent" />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-espresso/80 to-transparent"
+      />
 
       <Container className="pt-8 md:pt-10">
         <p className="text-sm font-medium tracking-[0.3em] uppercase">Mi-Luna</p>
@@ -55,8 +68,8 @@ function Hero() {
           One subscription, endless confidence.
         </h1>
         <p className="reveal reveal-delay mt-10 max-w-[42ch] text-base leading-relaxed text-ecru/80 md:mt-12 md:text-lg">
-          Het Mi-Luna string abonnement. Premium materialen, een feilloze pasvorm en elke maand een
-          nieuw moment van luxe in je brievenbus.
+          Het Mi-Luna string abonnement. Premium materialen, een feilloze pasvorm en elke maand een nieuw
+          moment van luxe in je brievenbus.
         </p>
         <a
           href="#abonnement"
@@ -74,7 +87,6 @@ function Hero() {
     </section>
   )
 }
-
 
 /* Shared strong ease-out for entrances. */
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
@@ -102,7 +114,10 @@ function HowItWorks() {
               key={step.title}
               className={`border-t border-espresso/15 pt-8 ${i === 1 ? 'md:mt-24' : ''} ${i === 2 ? 'md:mt-48' : ''}`}
             >
-              <span aria-hidden className="block text-7xl leading-none font-thin tracking-[-0.04em] tabular-nums md:text-8xl">
+              <span
+                aria-hidden
+                className="block text-7xl leading-none font-thin tracking-[-0.04em] tabular-nums md:text-8xl"
+              >
                 {String(i + 1).padStart(2, '0')}
               </span>
               <h3 className="mt-10 text-xl font-medium tracking-[-0.01em]">{step.title}</h3>
@@ -152,7 +167,10 @@ function Usps() {
           // Every other pair runs a narrower, taller frame so the zigzag never repeats exactly.
           const wide = i % 4 < 2
           return (
-            <article key={usp.title} className="grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-12">
+            <article
+              key={usp.title}
+              className="grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-12"
+            >
               <ParallaxPhoto
                 src={usp.image}
                 alt={usp.alt}
@@ -162,7 +180,9 @@ function Usps() {
               <div
                 className={`md:col-span-4 ${imageLeft ? `md:order-2 ${wide ? 'md:col-start-9' : 'md:col-start-8'}` : 'md:order-1 md:col-start-1'}`}
               >
-                <h3 className="text-3xl leading-[1.1] font-semibold tracking-[-0.03em] md:text-5xl">{usp.title}</h3>
+                <h3 className="text-3xl leading-[1.1] font-semibold tracking-[-0.03em] md:text-5xl">
+                  {usp.title}
+                </h3>
                 <p className="mt-6 max-w-[34ch] text-lg leading-relaxed text-espresso/60">{usp.body}</p>
               </div>
             </article>
@@ -174,8 +194,8 @@ function Usps() {
 }
 
 /*
- * Slow fade-in plus a light parallax drift: the photo rises a little slower
- * than the page while scrolling. Uses a transform string (not Motion's `y`)
+ * Slow fade-in plus a light downward parallax drift: the photo moves a little
+ * slower than the page while scrolling. Uses a transform string (not Motion's `y`)
  * so it stays hardware accelerated. Reduced motion keeps only the fade.
  */
 function ParallaxPhoto({
@@ -192,7 +212,7 @@ function ParallaxPhoto({
   const frame = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: frame, offset: ['start end', 'end start'] })
-  const transform = useTransform(scrollYProgress, [0, 1], ['translateY(6%)', 'translateY(-6%)'])
+  const transform = useTransform(scrollYProgress, [0, 1], ['translateY(-6%)', 'translateY(6%)'])
 
   return (
     <motion.div
@@ -203,7 +223,10 @@ function ParallaxPhoto({
       transition={{ duration: reduceMotion ? 0.3 : 1.4, ease: EASE_OUT }}
       className={`relative ${aspect} overflow-hidden bg-espresso ${className}`}
     >
-      <motion.div style={reduceMotion ? undefined : { transform }} className="absolute inset-x-0 -inset-y-[8%]">
+      <motion.div
+        style={reduceMotion ? undefined : { transform }}
+        className="absolute inset-x-0 -inset-y-[8%]"
+      >
         <Photo src={src} alt={alt} loading="lazy" className="size-full" />
       </motion.div>
     </motion.div>
@@ -238,25 +261,29 @@ function Reviews() {
           Wat abonnees zeggen
         </h2>
 
-        <figure className="md:col-span-7">
-          <Stars />
-          <blockquote className="mt-10 text-3xl leading-[1.2] font-medium tracking-[-0.025em] md:text-5xl">
-            &ldquo;{featured.quote}&rdquo;
-          </blockquote>
-          <figcaption className="mt-10 text-sm text-espresso/60">
-            {featured.name}, maat {featured.size}
-          </figcaption>
-        </figure>
+        <Tilt className="md:col-span-7">
+          <figure>
+            <Stars />
+            <blockquote className="mt-10 text-3xl leading-[1.2] font-medium tracking-[-0.025em] md:text-5xl">
+              &ldquo;{featured.quote}&rdquo;
+            </blockquote>
+            <figcaption className="mt-10 text-sm text-espresso/60">
+              {featured.name}, maat {featured.size}
+            </figcaption>
+          </figure>
+        </Tilt>
 
         <div className="flex flex-col gap-16 md:col-span-4 md:col-start-9 md:pt-24">
           {rest.map((review) => (
-            <figure key={review.name}>
-              <Stars />
-              <blockquote className="mt-6 text-lg leading-relaxed">&ldquo;{review.quote}&rdquo;</blockquote>
-              <figcaption className="mt-4 text-sm text-espresso/60">
-                {review.name}, maat {review.size}
-              </figcaption>
-            </figure>
+            <Tilt key={review.name}>
+              <figure>
+                <Stars />
+                <blockquote className="mt-6 text-lg leading-relaxed">&ldquo;{review.quote}&rdquo;</blockquote>
+                <figcaption className="mt-4 text-sm text-espresso/60">
+                  {review.name}, maat {review.size}
+                </figcaption>
+              </figure>
+            </Tilt>
           ))}
         </div>
       </Container>
@@ -276,6 +303,8 @@ const BENEFITS = [
   'Perfecte pasvorm van XS tot XL',
   'Elke maand nieuw, discreet bezorgd',
 ]
+
+const REASSURANCE = ['Altijd gratis bezorgd', 'Maandelijks opzegbaar', 'Past door de brievenbus']
 
 /* Soft, interruptible spring for the selected-size marker. */
 const markerSpring: Transition = { type: 'spring', duration: 0.45, bounce: 0.15 }
@@ -297,7 +326,10 @@ function Configurator() {
     >
       <Container className="grid grid-cols-1 gap-20 md:grid-cols-12 md:gap-12">
         <div className="md:col-span-5">
-          <h2 id="abonnement-title" className="text-4xl leading-[1.05] font-semibold tracking-[-0.03em] md:text-6xl">
+          <h2
+            id="abonnement-title"
+            className="text-4xl leading-[1.05] font-semibold tracking-[-0.03em] md:text-6xl"
+          >
             Waarom Mi&#8209;Luna?
           </h2>
           <ul className="mt-12 space-y-4 text-lg">
@@ -317,39 +349,40 @@ function Configurator() {
               {SIZES.map((option) => {
                 const isSelected = option === size
                 return (
-                  <label
-                    key={option}
-                    className="group relative isolate flex h-16 cursor-pointer items-center justify-center rounded-full border border-espresso/30 text-sm font-medium transition-[transform,border-color] duration-150 ease-out active:scale-[0.97] md:h-20 md:text-base [@media(hover:hover)_and_(pointer:fine)]:hover:border-espresso/70"
-                  >
-                    <input
-                      type="radio"
-                      name="size"
-                      value={option}
-                      checked={isSelected}
-                      onChange={() => setSize(option)}
-                      className="peer sr-only"
-                    />
-                    {isSelected && (
-                      <motion.span
-                        layoutId="size-marker"
-                        transition={instant ? { duration: 0 } : markerSpring}
-                        className="absolute -inset-px -z-10 rounded-full bg-espresso"
+                  <Magnetic key={option}>
+                    <label className="group relative isolate flex h-16 cursor-pointer items-center justify-center rounded-full border border-espresso/30 text-sm font-medium transition-[transform,border-color] duration-150 ease-out active:scale-[0.97] md:h-20 md:text-base [@media(hover:hover)_and_(pointer:fine)]:hover:border-espresso/70">
+                      <input
+                        type="radio"
+                        name="size"
+                        value={option}
+                        checked={isSelected}
+                        onChange={() => setSize(option)}
+                        className="peer sr-only"
                       />
-                    )}
-                    <span
-                      className={`transition-colors duration-200 ease-out ${isSelected ? 'text-ecru' : 'text-espresso'}`}
-                    >
-                      {option}
-                    </span>
-                    <span className="pointer-events-none absolute -inset-px rounded-full peer-focus-visible:outline-1 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-espresso" />
-                  </label>
+                      {isSelected && (
+                        <motion.span
+                          layoutId="size-marker"
+                          transition={instant ? { duration: 0 } : markerSpring}
+                          className="absolute -inset-px -z-10 rounded-full bg-espresso"
+                        />
+                      )}
+                      <span
+                        className={`transition-colors duration-200 ease-out ${isSelected ? 'text-ecru' : 'text-espresso'}`}
+                      >
+                        {option}
+                      </span>
+                      <span className="pointer-events-none absolute -inset-px rounded-full peer-focus-visible:outline-1 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-espresso" />
+                    </label>
+                  </Magnetic>
                 )
               })}
             </div>
           </fieldset>
 
           <p aria-live="polite" className="mt-6 h-6 text-sm text-espresso/60">
-            {size ? `Maat ${size}. Je past je maat altijd aan.` : 'Twijfel je? Kies je gebruikelijke slipmaat.'}
+            {size
+              ? `Maat ${size}. Je past je maat altijd aan.`
+              : 'Twijfel je? Kies je gebruikelijke slipmaat.'}
           </p>
 
           <motion.button
@@ -367,7 +400,14 @@ function Configurator() {
             </span>
           </motion.button>
 
-          <p className="mt-8 text-sm text-espresso/60">Pauzeren of opzeggen kan altijd.</p>
+          <ul className="mt-8 flex flex-col gap-3 text-sm text-espresso/60 sm:flex-row sm:flex-wrap sm:gap-x-8">
+            {REASSURANCE.map((line) => (
+              <li key={line} className="flex items-center gap-2">
+                <Check size={14} weight="bold" className="shrink-0 text-espresso" />
+                {line}
+              </li>
+            ))}
+          </ul>
         </div>
       </Container>
     </section>
@@ -384,5 +424,66 @@ function Footer() {
         <p>&copy; {year} Mi-Luna</p>
       </Container>
     </footer>
+  )
+}
+
+/*
+ * Sticky nudge: a slim bar that slides in once the hero has scrolled away and
+ * slides out as soon as the configurator is reached, so it never covers the
+ * real CTA or the footer.
+ */
+function StickyNudge() {
+  const [heroGone, setHeroGone] = useState(false)
+  const [configReached, setConfigReached] = useState(false)
+  const reduceMotion = useReducedMotion()
+
+  useEffect(() => {
+    const hero = document.getElementById('top')
+    const config = document.getElementById('abonnement')
+    if (!hero || !config) return
+
+    const heroObserver = new IntersectionObserver(([entry]) => setHeroGone(!entry.isIntersecting))
+    const configObserver = new IntersectionObserver(([entry]) =>
+      setConfigReached(entry.isIntersecting || entry.boundingClientRect.top < 0),
+    )
+    heroObserver.observe(hero)
+    configObserver.observe(config)
+    return () => {
+      heroObserver.disconnect()
+      configObserver.disconnect()
+    }
+  }, [])
+
+  const visible = heroGone && !configReached
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(100%)' }}
+          animate={{ opacity: 1, transform: 'translateY(0%)' }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(100%)' }}
+          transition={{ duration: 0.3, ease: EASE_OUT }}
+          className="fixed inset-x-0 bottom-0 z-20 border-t border-espresso/10 bg-ecru/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
+        >
+          <Container className="flex h-18 items-center justify-between gap-6">
+            <p className="text-sm">
+              {PLAN.price}{' '}
+              <span className="text-espresso/60">
+                {PLAN.interval}
+                <span className="hidden sm:inline">, eerste set gratis</span>
+              </span>
+            </p>
+            <a
+              href="#abonnement"
+              onClick={goToConfigurator}
+              className="inline-flex h-11 shrink-0 items-center rounded-full bg-espresso px-6 text-sm font-medium text-ecru transition-transform duration-150 ease-out active:scale-[0.97]"
+            >
+              Kies jouw maat
+            </a>
+          </Container>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

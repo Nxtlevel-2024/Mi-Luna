@@ -33,20 +33,3 @@
     @apply outline-1 outline-offset-4 outline-current;
   }
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    animation: reveal 1.1s var(--ease-out) both;
-  }
-
-  .reveal-delay {
-    animation-delay: 160ms;
-  }
-}
-
-@keyframes reveal {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}

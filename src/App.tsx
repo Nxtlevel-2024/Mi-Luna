@@ -5,7 +5,9 @@ import {
   useReducedMotion,
   useScroll,
   useTransform,
+  type MotionValue,
   type Transition,
+  type Variants,
 } from 'framer-motion'
 import { ArrowDown, Check, Star } from '@phosphor-icons/react'
 import { Container } from './components/Container'
@@ -16,9 +18,14 @@ import { reviews, sampleReviews } from './content/reviews'
 import { smoothScrollTo } from './lib/smoothScroll'
 
 /*
- * Mi-Luna: one product, one page.
- * Hero -> how it works -> USPs -> reviews -> closing configurator -> footer,
- * plus a sticky nudge that appears between the hero and the configurator.
+ * Mi-Luna: one product, told as one continuous scroll.
+ * Cinematic hero -> pinned "how it works" -> word-by-word USP reveal ->
+ * staggered reviews -> configurator -> footer, plus a sticky nudge.
+ *
+ * Motion rules (Emil Kowalski): everything is either scroll-linked (it follows
+ * the scrollbar, so it can never be "mid-animation") or a Framer Motion
+ * transition, which retargets from its current value when interrupted.
+ * No CSS keyframes. Only transform and opacity animate.
  */
 export default function App() {
   return (
@@ -26,7 +33,7 @@ export default function App() {
       <main>
         <Hero />
         <HowItWorks />
-        <Usps />
+        <UspReveal />
         <Reviews />
         <Configurator />
       </main>
@@ -36,6 +43,8 @@ export default function App() {
   )
 }
 
+const EASE_OUT = [0.23, 1, 0.32, 1] as const
+
 function goToConfigurator(event: MouseEvent<HTMLAnchorElement>) {
   const target = document.getElementById('abonnement')
   if (!target) return
@@ -43,53 +52,90 @@ function goToConfigurator(event: MouseEvent<HTMLAnchorElement>) {
   smoothScrollTo(target)
 }
 
+/* ------------------------------------------------------------------ Hero */
+
+/*
+ * The photo starts slightly zoomed in (scale 1.1) and settles to 1.0 as the
+ * hero scrolls away; it also fades in slowly on first paint. The copy drifts
+ * up and fades out with the scroll, so the hero hands over to the next scene.
+ */
 function Hero() {
+  const ref = useRef<HTMLElement>(null)
+  const reduceMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
+  const imageTransform = useTransform(scrollYProgress, [0, 1], ['scale(1.1)', 'scale(1)'])
+  const copyTransform = useTransform(scrollYProgress, [0, 0.6], ['translateY(0px)', 'translateY(-48px)'])
+  const copyOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
+
   return (
-    <section id="top" className="relative isolate flex min-h-[100dvh] flex-col bg-espresso text-ecru">
-      <Photo
-        src={media.hero}
-        alt="Model in Mi-Luna lingerie"
-        fetchPriority="high"
-        className="absolute inset-0 -z-10 size-full object-[60%_center]"
-      />
-      {/* Espresso scrim, heavier at the bottom where the copy sits. */}
+    <section
+      id="top"
+      ref={ref}
+      className="relative isolate flex h-[100dvh] min-h-[560px] flex-col overflow-hidden bg-espresso text-ecru"
+    >
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: reduceMotion ? 0.3 : 2.2, ease: EASE_OUT }}
+        style={reduceMotion ? undefined : { transform: imageTransform }}
+        className="absolute inset-0 -z-10 origin-center"
+      >
+        <Photo src={media.hero} alt="" fetchPriority="high" className="size-full object-[60%_center]" />
+      </motion.div>
       <div aria-hidden className="absolute inset-0 -z-10 bg-espresso/25" />
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-espresso/80 to-transparent"
+        className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-espresso/85 to-transparent"
       />
 
       <Container className="pt-8 md:pt-10">
         <p className="text-sm font-medium tracking-[0.3em] uppercase">Mi-Luna</p>
       </Container>
 
-      <Container className="mt-auto pb-16 md:pb-24">
-        <h1 className="reveal max-w-4xl text-5xl leading-[1.02] font-semibold tracking-[-0.035em] sm:text-6xl lg:text-8xl">
-          One subscription, endless confidence.
-        </h1>
-        <p className="reveal reveal-delay mt-10 max-w-[42ch] text-base leading-relaxed text-ecru/80 md:mt-12 md:text-lg">
-          Het Mi-Luna string abonnement. Premium materialen, een feilloze pasvorm en elke maand een nieuw
-          moment van luxe in je brievenbus.
-        </p>
-        <a
-          href="#abonnement"
-          onClick={goToConfigurator}
-          className="reveal reveal-delay group mt-10 inline-flex min-h-11 items-center gap-3 border-b border-ecru/40 pt-2 pb-2 text-sm font-medium tracking-wide transition-colors duration-200 ease-out hover:border-ecru md:mt-14"
-        >
-          Kies jouw maat
-          <ArrowDown
-            size={14}
-            weight="bold"
-            className="transition-transform duration-200 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-y-0.5"
-          />
-        </a>
-      </Container>
+      <motion.div
+        style={reduceMotion ? undefined : { transform: copyTransform, opacity: copyOpacity }}
+        className="mt-auto"
+      >
+        <Container className="pb-16 md:pb-24">
+          <motion.h1
+            initial={reduceMotion ? false : { opacity: 0, transform: 'translateY(24px)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+            transition={{ duration: 1.1, ease: EASE_OUT, delay: 0.2 }}
+            className="max-w-5xl text-5xl leading-[0.98] font-bold tracking-[-0.045em] sm:text-7xl lg:text-[7.5rem]"
+          >
+            One subscription, endless confidence.
+          </motion.h1>
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, transform: 'translateY(16px)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+            transition={{ duration: 1.1, ease: EASE_OUT, delay: 0.4 }}
+            className="mt-10 flex flex-col gap-10 md:mt-14 md:flex-row md:items-end md:justify-between"
+          >
+            <p className="max-w-[42ch] text-base leading-relaxed text-ecru/80 md:text-lg">
+              Het Mi-Luna string abonnement. Premium materialen, een feilloze pasvorm en elke maand een nieuw
+              moment van luxe in je brievenbus.
+            </p>
+            <a
+              href="#abonnement"
+              onClick={goToConfigurator}
+              className="group inline-flex min-h-11 shrink-0 items-center gap-3 self-start border-b border-ecru/40 py-2 text-sm font-medium tracking-wide transition-colors duration-200 ease-out hover:border-ecru"
+            >
+              Kies jouw maat
+              <ArrowDown
+                size={14}
+                weight="bold"
+                className="transition-transform duration-200 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-y-0.5"
+              />
+            </a>
+          </motion.div>
+        </Container>
+      </motion.div>
     </section>
   )
 }
 
-/* Shared strong ease-out for entrances. */
-const EASE_OUT = [0.23, 1, 0.32, 1] as const
+/* ------------------------------------------------------- How it works */
 
 const STEPS = [
   { title: 'Kies je maat', body: 'Van XS tot XL. Je past je maat altijd aan.' },
@@ -98,198 +144,204 @@ const STEPS = [
 ]
 
 /*
- * Staircase grid: each step drops lower than the last on desktop, so the eye
- * reads 01 -> 02 -> 03 diagonally. Collapses to a single column on mobile.
+ * Split sticky: on desktop the photo pins to the left half of the viewport
+ * while the right half scrolls through the three steps. Each step comes into
+ * full focus while it sits in the middle of the screen. Mobile stacks.
  */
 function HowItWorks() {
   return (
-    <section aria-labelledby="hoe-title" className="py-32 md:py-48">
-      <Container>
-        <h2 id="hoe-title" className="text-4xl leading-[1.05] font-semibold tracking-[-0.03em] md:text-6xl">
-          Hoe werkt het?
-        </h2>
-        <ol className="mt-20 grid grid-cols-1 gap-16 md:mt-28 md:grid-cols-3 md:gap-12">
+    <section aria-labelledby="hoe-title" className="relative md:grid md:grid-cols-2">
+      <div className="h-[70dvh] md:sticky md:top-0 md:h-[100dvh]">
+        <Photo
+          src={media.comfort}
+          alt="Model in Mi-Luna lingerie in een zandkleurige studio"
+          loading="lazy"
+          className="size-full"
+        />
+      </div>
+
+      <div className="px-4 sm:px-6 md:px-16 lg:px-24">
+        <div className="flex min-h-[50dvh] items-end pt-32 pb-8 md:min-h-[100dvh] md:items-center md:py-0">
+          <h2 id="hoe-title" className="text-5xl leading-[1] font-bold tracking-[-0.04em] md:text-7xl">
+            Hoe werkt het?
+          </h2>
+        </div>
+        <ol>
           {STEPS.map((step, i) => (
-            <li
-              key={step.title}
-              className={`border-t border-espresso/15 pt-8 ${i === 1 ? 'md:mt-24' : ''} ${i === 2 ? 'md:mt-48' : ''}`}
-            >
-              <span
-                aria-hidden
-                className="block text-7xl leading-none font-thin tracking-[-0.04em] tabular-nums md:text-8xl"
-              >
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <h3 className="mt-10 text-xl font-medium tracking-[-0.01em]">{step.title}</h3>
-              <p className="mt-3 max-w-[30ch] leading-relaxed text-espresso/60">{step.body}</p>
-            </li>
+            <Step key={step.title} index={i} title={step.title} body={step.body} />
           ))}
         </ol>
-      </Container>
+        <div aria-hidden className="h-16 md:h-[20dvh]" />
+      </div>
     </section>
   )
 }
 
-const USPS = [
-  {
-    title: 'Ultiem draagcomfort',
-    body: 'Zacht tegen je huid, van de ochtend tot diep in de nacht. Je vergeet dat je hem draagt.',
-    image: media.comfort,
-    alt: 'Close-up van zachte premium stof op de huid',
-  },
-  {
-    title: 'Seamless ontwerp',
-    body: 'Geen naden, geen lijnen. Onzichtbaar onder je strakste jurk of jeans.',
-    image: media.seamless,
-    alt: 'Detail van naadloos afgewerkt kant',
-  },
-  {
-    title: 'Perfecte pasvorm',
-    body: 'Van XS tot XL ontworpen om te blijven zitten waar hij hoort.',
-    image: media.fit,
-    alt: 'Model in een minimalistische zandkleurige studio',
-  },
-  {
-    title: 'Hoogwaardige kwaliteit',
-    body: 'Premium materialen, met zorg afgewerkt. Gemaakt om lang mee te gaan.',
-    image: media.quality,
-    alt: 'Model in Mi-Luna lingerie, warm licht',
-  },
+function Step({ index, title, body }: { index: number; title: string; body: string }) {
+  const reduceMotion = useReducedMotion()
+
+  return (
+    <motion.li
+      initial={reduceMotion ? false : { opacity: 0.15 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ amount: 0.6 }}
+      transition={{ duration: 0.6, ease: EASE_OUT }}
+      className="flex min-h-[55dvh] flex-col justify-center py-12 md:min-h-[80dvh]"
+    >
+      <span
+        aria-hidden
+        className="text-8xl leading-none font-thin tracking-[-0.05em] tabular-nums md:text-9xl"
+      >
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <h3 className="mt-12 text-2xl font-semibold tracking-[-0.02em] md:text-3xl">{title}</h3>
+      <p className="mt-4 max-w-[32ch] text-lg leading-relaxed text-espresso/60">{body}</p>
+    </motion.li>
+  )
+}
+
+/* --------------------------------------------------------- USP reveal */
+
+const CLAIMS = [
+  { title: 'Ultiem draagcomfort.', body: 'Zacht tegen je huid, van de ochtend tot diep in de nacht.' },
+  { title: 'Seamless ontwerp.', body: 'Geen naden, geen lijnen. Onzichtbaar onder alles wat je draagt.' },
+  { title: 'Perfecte pasvorm.', body: 'Van XS tot XL ontworpen om te blijven zitten waar hij hoort.' },
 ]
 
-/* Editorial alternating rows: image right, then image left, with wide gaps. */
-function Usps() {
+function UspReveal() {
   return (
-    <section aria-label="Waarom je hem niet meer uittrekt" className="pb-32 md:pb-48">
-      <Container className="flex flex-col gap-32 md:gap-56">
-        {USPS.map((usp, i) => {
-          const imageLeft = i % 2 === 1
-          // Every other pair runs a narrower, taller frame so the zigzag never repeats exactly.
-          const wide = i % 4 < 2
-          return (
-            <article
-              key={usp.title}
-              className="grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-12"
-            >
-              <ParallaxPhoto
-                src={usp.image}
-                alt={usp.alt}
-                aspect={wide ? 'aspect-[4/5]' : 'aspect-[3/4]'}
-                className={`${wide ? 'md:col-span-7' : 'md:col-span-5'} ${imageLeft ? 'md:order-1' : `md:order-2 ${wide ? 'md:col-start-6' : 'md:col-start-8'}`}`}
-              />
-              <div
-                className={`md:col-span-4 ${imageLeft ? `md:order-2 ${wide ? 'md:col-start-9' : 'md:col-start-8'}` : 'md:order-1 md:col-start-1'}`}
-              >
-                <h3 className="text-3xl leading-[1.1] font-semibold tracking-[-0.03em] md:text-5xl">
-                  {usp.title}
-                </h3>
-                <p className="mt-6 max-w-[34ch] text-lg leading-relaxed text-espresso/60">{usp.body}</p>
-              </div>
-            </article>
-          )
-        })}
+    <section aria-label="Waarom je hem niet meer uittrekt" className="py-40 md:py-64">
+      <Container className="flex flex-col gap-40 md:gap-64">
+        {CLAIMS.map((claim) => (
+          <div key={claim.title}>
+            <RevealText
+              as="h3"
+              text={claim.title}
+              className="max-w-5xl text-5xl leading-[1.02] font-bold tracking-[-0.045em] sm:text-7xl lg:text-8xl"
+            />
+            <RevealText
+              as="p"
+              text={claim.body}
+              className="mt-10 max-w-[30ch] text-xl leading-relaxed md:ml-[40%] md:text-2xl"
+            />
+          </div>
+        ))}
       </Container>
     </section>
   )
 }
 
 /*
- * Slow fade-in plus a light downward parallax drift: the photo moves a little
- * slower than the page while scrolling. Uses a transform string (not Motion's `y`)
- * so it stays hardware accelerated. Reduced motion keeps only the fade.
+ * Word-by-word text mask: every word starts as a faint espresso tint and
+ * resolves to full contrast as the line travels from the bottom of the screen
+ * to its centre. Tied to scroll progress, so scrolling back un-reveals it.
  */
-function ParallaxPhoto({
-  src,
-  alt,
-  aspect,
-  className = '',
-}: {
-  src: string
-  alt: string
-  aspect: string
-  className?: string
-}) {
-  const frame = useRef<HTMLDivElement>(null)
+function RevealText({ text, as, className }: { text: string; as: 'h3' | 'p'; className: string }) {
+  const ref = useRef<HTMLHeadingElement & HTMLParagraphElement>(null)
   const reduceMotion = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: frame, offset: ['start end', 'end start'] })
-  const transform = useTransform(scrollYProgress, [0, 1], ['translateY(-6%)', 'translateY(6%)'])
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.9', 'start 0.5'] })
+  const words = text.split(' ')
+  const Tag = as
+
+  if (reduceMotion) return <Tag className={className}>{text}</Tag>
 
   return (
-    <motion.div
-      ref={frame}
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, margin: '-15% 0px' }}
-      transition={{ duration: reduceMotion ? 0.3 : 1.4, ease: EASE_OUT }}
-      className={`relative ${aspect} overflow-hidden bg-espresso ${className}`}
-    >
-      <motion.div
-        style={reduceMotion ? undefined : { transform }}
-        className="absolute inset-x-0 -inset-y-[8%]"
-      >
-        <Photo src={src} alt={alt} loading="lazy" className="size-full" />
-      </motion.div>
-    </motion.div>
+    <Tag ref={ref} className={className} aria-label={text}>
+      {words.map((word, i) => (
+        <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]}>
+          {word}
+        </Word>
+      ))}
+    </Tag>
   )
 }
 
+function Word({
+  children,
+  progress,
+  range,
+}: {
+  children: string
+  progress: MotionValue<number>
+  range: [number, number]
+}) {
+  const opacity = useTransform(progress, range, [0.12, 1])
+  return (
+    <span aria-hidden>
+      <motion.span style={{ opacity }}>{children}</motion.span>{' '}
+    </span>
+  )
+}
+
+/* ------------------------------------------------------------ Reviews */
+
 /* Real reviews in production; sample copy only while developing locally. */
 const visibleReviews = reviews.length > 0 ? reviews : import.meta.env.DEV ? sampleReviews : []
+
+const reviewList: Variants = {
+  hidden: {},
+  shown: { transition: { staggerChildren: 0.1 } },
+}
+
+const reviewCard: Variants = {
+  hidden: { opacity: 0, transform: 'translateY(32px)' },
+  shown: {
+    opacity: 1,
+    transform: 'translateY(0px)',
+    transition: { type: 'spring', duration: 0.8, bounce: 0.15 },
+  },
+}
 
 function Stars() {
   return (
     <div className="flex gap-1" role="img" aria-label="5 van 5 sterren">
       {Array.from({ length: 5 }, (_, i) => (
-        <Star key={i} size={14} weight="fill" className="text-espresso" />
+        <Star key={i} size={13} weight="fill" className="text-espresso" />
       ))}
     </div>
   )
 }
 
-/*
- * One large featured quote, two quieter ones stacked beside it.
- * Hidden entirely when there are no reviews to show.
- */
+/* Three cards that rise in one after another. Depth from a tinted shadow, no borders. */
 function Reviews() {
+  const reduceMotion = useReducedMotion()
   if (visibleReviews.length === 0) return null
-  const [featured, ...rest] = visibleReviews
 
   return (
-    <section aria-labelledby="reviews-title" className="border-t border-espresso/10 py-32 md:py-48">
-      <Container className="grid grid-cols-1 gap-20 md:grid-cols-12 md:gap-12">
-        <h2 id="reviews-title" className="sr-only">
-          Wat abonnees zeggen
+    <section aria-labelledby="reviews-title" className="pb-40 md:pb-64">
+      <Container>
+        <h2 id="reviews-title" className="text-4xl leading-[1.05] font-bold tracking-[-0.04em] md:text-6xl">
+          Wat abonnees zeggen.
         </h2>
-
-        <Tilt className="md:col-span-7">
-          <figure>
-            <Stars />
-            <blockquote className="mt-10 text-3xl leading-[1.2] font-medium tracking-[-0.025em] md:text-5xl">
-              &ldquo;{featured.quote}&rdquo;
-            </blockquote>
-            <figcaption className="mt-10 text-sm text-espresso/60">
-              {featured.name}, maat {featured.size}
-            </figcaption>
-          </figure>
-        </Tilt>
-
-        <div className="flex flex-col gap-16 md:col-span-4 md:col-start-9 md:pt-24">
-          {rest.map((review) => (
-            <Tilt key={review.name}>
-              <figure>
-                <Stars />
-                <blockquote className="mt-6 text-lg leading-relaxed">&ldquo;{review.quote}&rdquo;</blockquote>
-                <figcaption className="mt-4 text-sm text-espresso/60">
-                  {review.name}, maat {review.size}
-                </figcaption>
-              </figure>
-            </Tilt>
+        <motion.ul
+          variants={reviewList}
+          initial={reduceMotion ? false : 'hidden'}
+          whileInView="shown"
+          viewport={{ once: true, amount: 0.3 }}
+          className="mt-20 grid grid-cols-1 gap-6 md:mt-28 md:grid-cols-3 md:items-start"
+        >
+          {visibleReviews.map((review, i) => (
+            <motion.li key={review.name} variants={reviewCard} className={i === 1 ? 'md:mt-16' : ''}>
+              <Tilt>
+                <figure className="rounded-[28px] bg-ecru p-10 shadow-[0_40px_80px_-40px_rgba(28,25,23,0.28),0_2px_6px_rgba(28,25,23,0.04)] md:p-12">
+                  <Stars />
+                  <blockquote className="mt-8 text-xl leading-snug font-medium tracking-[-0.015em]">
+                    &ldquo;{review.quote}&rdquo;
+                  </blockquote>
+                  <figcaption className="mt-8 text-sm text-espresso/60">
+                    {review.name}, maat {review.size}
+                  </figcaption>
+                </figure>
+              </Tilt>
+            </motion.li>
           ))}
-        </div>
+        </motion.ul>
       </Container>
     </section>
   )
 }
+
+/* ------------------------------------------------------- Configurator */
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'] as const
 type Size = (typeof SIZES)[number]
@@ -306,13 +358,12 @@ const BENEFITS = [
 
 const REASSURANCE = ['Altijd gratis bezorgd', 'Maandelijks opzegbaar', 'Past door de brievenbus']
 
-/* Soft, interruptible spring for the selected-size marker. */
-const markerSpring: Transition = { type: 'spring', duration: 0.45, bounce: 0.15 }
+/* Elastic but quick capsule spring; retargets mid-flight when the size changes again. */
+const capsuleSpring: Transition = { type: 'spring', duration: 0.5, bounce: 0.25 }
 
-/* Closing section: a calm recap of the benefits, then size and the one CTA. */
 function Configurator() {
   const [size, setSize] = useState<Size | null>(null)
-  // Keyboard changes are repeated quickly; they move the marker without animation.
+  // Keyboard changes are repeated quickly; they move the capsule without animation.
   const [viaKeyboard, setViaKeyboard] = useState(false)
   const reduceMotion = useReducedMotion()
   const instant = reduceMotion || viaKeyboard
@@ -322,35 +373,33 @@ function Configurator() {
       id="abonnement"
       tabIndex={-1}
       aria-labelledby="abonnement-title"
-      className="border-t border-espresso/10 py-32 outline-none md:py-48"
+      className="bg-espresso/[0.03] py-40 outline-none md:py-56"
     >
       <Container className="grid grid-cols-1 gap-20 md:grid-cols-12 md:gap-12">
         <div className="md:col-span-5">
-          <h2
-            id="abonnement-title"
-            className="text-4xl leading-[1.05] font-semibold tracking-[-0.03em] md:text-6xl"
-          >
+          <h2 id="abonnement-title" className="text-5xl leading-[1] font-bold tracking-[-0.04em] md:text-7xl">
             Waarom Mi&#8209;Luna?
           </h2>
-          <ul className="mt-12 space-y-4 text-lg">
+          <ul className="mt-14 space-y-4 text-lg">
             {BENEFITS.map((benefit) => (
               <li key={benefit}>{benefit}</li>
             ))}
           </ul>
-          <p className="mt-12 text-lg">
-            {PLAN.price} <span className="text-espresso/60">{PLAN.interval}</span>
+          <p className="mt-14 text-2xl font-medium tracking-[-0.02em]">
+            {PLAN.price} <span className="text-base font-normal text-espresso/60">{PLAN.interval}</span>
           </p>
         </div>
 
-        <div className="md:col-span-6 md:col-start-7 md:pt-3">
+        <div className="md:col-span-6 md:col-start-7 md:pt-4">
           <fieldset onKeyDown={() => setViaKeyboard(true)} onPointerDown={() => setViaKeyboard(false)}>
             <legend className="text-sm text-espresso/60">Kies jouw maat</legend>
-            <div className="mt-4 grid grid-cols-5 gap-2">
+            {/* Capsule track: a soft inset well, no borders. */}
+            <div className="mt-5 grid grid-cols-5 gap-1 rounded-full bg-espresso/[0.05] p-1.5 shadow-[inset_0_1px_3px_rgba(28,25,23,0.08)]">
               {SIZES.map((option) => {
                 const isSelected = option === size
                 return (
                   <Magnetic key={option}>
-                    <label className="group relative isolate flex h-16 cursor-pointer items-center justify-center rounded-full border border-espresso/30 text-sm font-medium transition-[transform,border-color] duration-150 ease-out active:scale-[0.97] md:h-20 md:text-base [@media(hover:hover)_and_(pointer:fine)]:hover:border-espresso/70">
+                    <label className="relative isolate flex h-14 cursor-pointer items-center justify-center rounded-full text-sm font-medium transition-transform duration-150 ease-out active:scale-[0.96] md:h-16 md:text-base">
                       <input
                         type="radio"
                         name="size"
@@ -361,17 +410,21 @@ function Configurator() {
                       />
                       {isSelected && (
                         <motion.span
-                          layoutId="size-marker"
-                          transition={instant ? { duration: 0 } : markerSpring}
-                          className="absolute -inset-px -z-10 rounded-full bg-espresso"
+                          layoutId="size-capsule"
+                          transition={instant ? { duration: 0 } : capsuleSpring}
+                          className="absolute inset-0 -z-10 rounded-full bg-espresso shadow-[0_8px_20px_-8px_rgba(28,25,23,0.5)]"
                         />
                       )}
                       <span
-                        className={`transition-colors duration-200 ease-out ${isSelected ? 'text-ecru' : 'text-espresso'}`}
+                        className={`transition-[color,opacity] duration-200 ease-out ${
+                          isSelected
+                            ? 'text-ecru'
+                            : 'text-espresso/70 [@media(hover:hover)_and_(pointer:fine)]:hover:text-espresso'
+                        }`}
                       >
                         {option}
                       </span>
-                      <span className="pointer-events-none absolute -inset-px rounded-full peer-focus-visible:outline-1 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-espresso" />
+                      <span className="pointer-events-none absolute inset-0 rounded-full peer-focus-visible:outline-1 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-espresso" />
                     </label>
                   </Magnetic>
                 )
@@ -393,7 +446,7 @@ function Configurator() {
             whileInView={{ opacity: 1, transform: 'translateY(0px)' }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.7, ease: EASE_OUT }}
-            className="mt-10 flex h-20 w-full items-center justify-center rounded-full bg-espresso text-base font-medium tracking-wide text-ecru transition-[scale] duration-150 ease-out not-disabled:active:scale-[0.98] disabled:cursor-not-allowed md:h-24 md:text-lg"
+            className="mt-10 flex h-20 w-full items-center justify-center rounded-full bg-espresso text-base font-medium tracking-wide text-ecru shadow-[0_24px_48px_-24px_rgba(28,25,23,0.6)] transition-[scale] duration-150 ease-out not-disabled:active:scale-[0.98] disabled:cursor-not-allowed md:h-24 md:text-lg"
           >
             <span className={`transition-opacity duration-200 ${size ? 'opacity-100' : 'opacity-50'}`}>
               {size ? 'Activeer jouw abonnement' : 'Kies eerst je maat'}
@@ -414,11 +467,13 @@ function Configurator() {
   )
 }
 
+/* ------------------------------------------------------------- Footer */
+
 const year = new Date().getFullYear()
 
 function Footer() {
   return (
-    <footer className="border-t border-espresso/10 py-12">
+    <footer className="py-16">
       <Container className="flex flex-col gap-3 text-sm text-espresso/60 sm:flex-row sm:justify-between">
         <p>One subscription, endless confidence.</p>
         <p>&copy; {year} Mi-Luna</p>
@@ -427,10 +482,11 @@ function Footer() {
   )
 }
 
+/* -------------------------------------------------------- Sticky nudge */
+
 /*
- * Sticky nudge: a slim bar that slides in once the hero has scrolled away and
- * slides out as soon as the configurator is reached, so it never covers the
- * real CTA or the footer.
+ * Slim bar that slides in once the hero has scrolled away and slides out as
+ * soon as the configurator is reached, so it never covers the real CTA.
  */
 function StickyNudge() {
   const [heroGone, setHeroGone] = useState(false)
@@ -464,7 +520,7 @@ function StickyNudge() {
           animate={{ opacity: 1, transform: 'translateY(0%)' }}
           exit={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(100%)' }}
           transition={{ duration: 0.3, ease: EASE_OUT }}
-          className="fixed inset-x-0 bottom-0 z-20 border-t border-espresso/10 bg-ecru/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
+          className="fixed inset-x-0 bottom-0 z-20 bg-ecru pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_32px_-16px_rgba(28,25,23,0.18)]"
         >
           <Container className="flex h-18 items-center justify-between gap-6">
             <p className="text-sm">
